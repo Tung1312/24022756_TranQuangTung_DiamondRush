@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-Iinclude",
+                "-Llib",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.exe",
+                "${file}",
+                "-lSDL2",
+                "-lSDL2main"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Generated task by g++"
+        }
+    ]
+}
