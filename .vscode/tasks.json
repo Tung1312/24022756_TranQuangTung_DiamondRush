@@ -22,6 +22,28 @@
             },
             "problemMatcher": ["$gcc"],
             "detail": "Generated task by g++"
+        },
+        {
+            "label": "build-linux",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-Iinclude",
+                "-Llib",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}",
+                "${file}",
+                "-lSDL2",
+                "-lSDL2main",
+                "-lSDL2_image",
+                "-lSDL2_mixer"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Generated task for native Linux executable by g++"
         }
     ]
 }
