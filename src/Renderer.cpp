@@ -1,13 +1,20 @@
 #include "../include/Renderer.h"
 #include "../include/Constants.h"
 #include "../include/Player.h"
+#include "../include/GameTypes.h"
 #include <SDL2/SDL_image.h>
 #include <iostream>
 #include <algorithm>
 
 extern SDL_Renderer* renderer;
 extern SDL_Texture* mapTexture;
+extern SDL_Texture* leavesTexture;
+extern SDL_Texture* boulderTexture;
+extern SDL_Texture* diamondTexture;
 extern Player player;
+extern TileList leavesTiles;
+extern BlockList diamonds;
+extern BlockList boulderTiles;
 
 SDL_Texture* loadTexture(const char* path) {
     SDL_Texture* texture = IMG_LoadTexture(renderer, path);
@@ -45,6 +52,36 @@ void render() {
     };
     
     SDL_RenderCopy(renderer, mapTexture, &mapSrcRect, &mapDestRect);
+
+    //render leaves
+    for (const auto& leaf : leavesTiles) {
+        SDL_Rect leafRect = {
+            leaf.first * TILE_SIZE - offsetX,
+            leaf.second * TILE_SIZE - offsetY + verticalPadding,
+            TILE_SIZE, TILE_SIZE
+        };
+        SDL_RenderCopy(renderer, leavesTexture, NULL, &leafRect);
+    }
+
+    //render diamonds
+    for (const auto& diamond : diamonds) {
+        SDL_Rect diamondRect = {
+            diamond.x * TILE_SIZE - offsetX,
+            diamond.y * TILE_SIZE - offsetY + verticalPadding,
+            TILE_SIZE, TILE_SIZE
+        };
+        SDL_RenderCopy(renderer, diamondTexture, NULL, &diamondRect);
+    }
+
+    //render boulders
+    for (const auto& boulder : boulderTiles) {
+        SDL_Rect boulderRect = {
+            boulder.x * TILE_SIZE - offsetX,
+            boulder.y * TILE_SIZE - offsetY + verticalPadding,
+            TILE_SIZE, TILE_SIZE
+        };
+        SDL_RenderCopy(renderer, boulderTexture, NULL, &boulderRect);
+    }
 
     //render nguoi choi
     SDL_Rect playerRect = {

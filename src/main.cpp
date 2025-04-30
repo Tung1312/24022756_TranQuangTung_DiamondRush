@@ -3,6 +3,7 @@
 #include "../include/Player.h"
 #include "../include/Renderer.h"
 #include "../include/Game.h"
+#include "../include/Objects.h"
 #include <SDL2/SDL.h>
 #include <iostream>
 
@@ -12,7 +13,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     
-    SDL_Event e;
+    SDL_Ev./ent e;
     bool running = true;
     Uint32 frameStart;
     int frameTime;

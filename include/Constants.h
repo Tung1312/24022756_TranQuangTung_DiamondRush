@@ -12,6 +12,12 @@ const int GRID_HEIGHT = GRID_ROWS * TILE_SIZE;
 extern const char* WINDOW_TITLE;
 extern const char* MAP_PATH;
 extern const char* PLAYER_PATH;
+extern const char* LEAVES_PATH;
+extern const char* BOULDER_PATH;
+extern const char* DIAMOND_PATH;
+
+extern const char* LEAVES_SOUND_PATH;
+extern const char* COLLECT_SOUND_PATH;
 
 const int FPS = 60;
 const int FRAME_DELAY = 1000 / FPS;
