@@ -15,6 +15,7 @@ extern const char* PLAYER_PATH;
 extern const char* LEAVES_PATH;
 extern const char* BOULDER_PATH;
 extern const char* DIAMOND_PATH;
+extern const char* PLAYER_UNDER_BOULDER_PATH;
 
 extern const char* LEAVES_SOUND_PATH;
 extern const char* COLLECT_SOUND_PATH;

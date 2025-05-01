@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
         return -1;
     }
     
-    SDL_Ev./ent e;
+    SDL_Event e;
     bool running = true;
     Uint32 frameStart;
     int frameTime;
@@ -29,7 +29,9 @@ int main(int argc, char* argv[]) {
             }
         }
         
-        //render game
+        player.updateAnimation();
+        
+        //Render game
         render();
         
         //fps

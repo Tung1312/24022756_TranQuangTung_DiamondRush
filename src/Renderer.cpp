@@ -83,15 +83,9 @@ void render() {
         SDL_RenderCopy(renderer, boulderTexture, NULL, &boulderRect);
     }
 
-    //render nguoi choi
-    SDL_Rect playerRect = {
-        player.x * TILE_SIZE - offsetX,
-        player.y * TILE_SIZE - offsetY + verticalPadding,
-        TILE_SIZE, TILE_SIZE
-    };
-    
-    SDL_RenderCopyEx(renderer, player.texture, NULL, &playerRect, 0, NULL, 
-                    player.flip ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE);
+    // Update player animation and render
+    player.updateAnimation();
+    player.render(renderer, offsetX, offsetY, verticalPadding);
 
     SDL_RenderPresent(renderer);
 }
