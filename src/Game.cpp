@@ -68,7 +68,7 @@ bool init() {
     leavesTexture = loadTexture(LEAVES_PATH);
     boulderTexture = loadTexture(BOULDER_PATH);
     diamondTexture = loadTexture(DIAMOND_PATH);
-playerUnderBoulderTexture = loadTexture(PLAYER_UNDER_BOULDER_PATH); // Load warning texture
+    playerUnderBoulderTexture = loadTexture(PLAYER_UNDER_BOULDER_PATH); 
     
     // load am thanh
     leavesSound = Mix_LoadWAV(LEAVES_SOUND_PATH);
@@ -80,10 +80,10 @@ playerUnderBoulderTexture = loadTexture(PLAYER_UNDER_BOULDER_PATH); // Load warn
     
     player.texture = playerTexture;
     
-    loadLevelData("levels/map.lvl");
+    loadLevelData(LEVEL_PATH);
     
     return mapTexture && playerTexture && leavesTexture && 
-boulderTexture && diamondTexture && playerUnderBoulderTexture;
+    boulderTexture && diamondTexture && playerUnderBoulderTexture;
 }
 
 //input handling

@@ -1,7 +1,7 @@
 #include "../include/Objects.h"
 #include "../include/Constants.h"
-#include "../include/GameTypes.h"
 #include "../include/Player.h"
+#include "../include/GameTypes.h"
 #include <fstream>
 #include <iostream>
 
@@ -25,7 +25,122 @@ bool isBlockedForPlayer(int x, int y) {
     return false;
 }
 
-// load map khi vao game
+bool isBlockedForBlocks(int x, int y) {
+    //walls
+    for (const auto& block : blockedTiles) {
+        if (block.first == x && block.second == y) {
+            return true;
+        }
+    }
+    
+    //leaves
+    for (const auto& leaf : leavesTiles) {
+        if (leaf.first == x && leaf.second == y) {
+            return true;
+        }
+    }
+    
+    //boulders
+    for (const auto& boulder : boulderTiles) {
+        if (boulder.x == x && boulder.y == y && !boulder.isFalling) {
+            return true;
+        }
+    }
+    
+    // diamonds
+    for (const auto& diamond : diamonds) {
+        if (diamond.x == x && diamond.y == y && !diamond.isFalling) {
+            return true;
+        }
+    }
+    
+    //player
+    if (player.x == x && player.y == y) {
+        return true;
+    }
+    
+    // grid boundaries
+    if (x < 0 || x >= GRID_COLS || y < 0 || y >= GRID_ROWS) {
+        return true;
+    }
+    
+    return false;
+}
+
+//ap dung trong luc
+void applyGravityToBoulders() {
+    
+    for (auto& boulder : boulderTiles) {
+        //neu boulder khong roi, kiem tra xem co bat dau roi khong
+        if (!boulder.isFalling) {
+            if (!isBlockedForBlocks(boulder.x, boulder.y + 1)) {
+                boulder.isFalling = true;
+                //khoi tao vi tri pixel de di chuyen
+                boulder.pixelX = boulder.x * TILE_SIZE;
+                boulder.pixelY = boulder.y * TILE_SIZE;
+                boulder.needsUpdate = true;
+            }
+        }
+        
+        //neu boulder dang roi, cap nhat vi tri
+        if (boulder.isFalling) {
+            boulder.pixelY += FALL_SPEED;
+            
+            //kiem tra xem boulder da den vi tri moi trong luoi chua
+            if (boulder.pixelY >= (boulder.y + 1) * TILE_SIZE) {
+                //cap nhat vi tri trong luoi cho boulder
+                boulder.y += 1;
+                
+                //kiem tra xem boulder co tiep tuc roi khong
+                if (!isBlockedForBlocks(boulder.x, boulder.y + 1)) {
+                    // tiep tuc roi
+                    boulder.pixelX = boulder.x * TILE_SIZE;
+                    boulder.pixelY = boulder.y * TILE_SIZE;
+                } else {
+                    // ngung roi
+                    boulder.isFalling = false;
+                    boulder.needsUpdate = false;
+                    boulder.pixelX = boulder.x * TILE_SIZE;
+                    boulder.pixelY = boulder.y * TILE_SIZE;
+                }
+            }
+        }
+    }
+}
+
+// ap dung trong luc cho kim cuong
+void applyGravityToDiamonds() {
+    
+    for (auto& diamond : diamonds) {
+        if (!diamond.isFalling) {
+            if (!isBlockedForBlocks(diamond.x, diamond.y + 1)) {
+                diamond.isFalling = true;
+                diamond.pixelX = diamond.x * TILE_SIZE;
+                diamond.pixelY = diamond.y * TILE_SIZE;
+                diamond.needsUpdate = true;
+            }
+        }
+        
+        if (diamond.isFalling) {
+            diamond.pixelY += FALL_SPEED;
+            
+            if (diamond.pixelY >= (diamond.y + 1) * TILE_SIZE) {
+                diamond.y += 1;
+                
+                if (!isBlockedForBlocks(diamond.x, diamond.y + 1)) {
+                    diamond.pixelX = diamond.x * TILE_SIZE;
+                    diamond.pixelY = diamond.y * TILE_SIZE;
+                } else {
+                    diamond.isFalling = false;
+                    diamond.needsUpdate = false;
+                    diamond.pixelX = diamond.x * TILE_SIZE;
+                    diamond.pixelY = diamond.y * TILE_SIZE;
+                }
+            }
+        }
+    }
+}
+
 void loadLevelData(const std::string& levelFile) {
     std::ifstream file(levelFile);
     if (!file) {
@@ -33,15 +148,14 @@ void loadLevelData(const std::string& levelFile) {
         return;
     }
 
-    // clear truoc khi load
+    //clear truoc load sau
     blockedTiles.clear();
     leavesTiles.clear();
     diamonds.clear();
     boulderTiles.clear();
 
-    //doc tu lieu tu file .lvl
-    //dinh dang file: type x y
-    //type: 0 - blocked, 1 - leaves, 2 - diamond, 3 - boulder, 4 - player_start_position
+    //doc du lieu tu file
+    //0: blocked tile, 1: leaves, 2: diamond, 3: boulder, 4: player start position
     int type, x, y;
     while (file >> type >> x >> y) {
         switch (type) {
@@ -52,10 +166,26 @@ void loadLevelData(const std::string& levelFile) {
                 leavesTiles.emplace_back(x, y);
                 break;
             case 2:
-                diamonds.push_back({x, y});
+                {
+                    Block diamond = {
+                        x, y, 
+                        static_cast<float>(x * TILE_SIZE), 
+                        static_cast<float>(y * TILE_SIZE), 
+                        false, false
+                    };
+                    diamonds.push_back(diamond);
+                }
                 break;
             case 3:
-                boulderTiles.push_back({x, y});
+                {
+                    Block boulder = {
+                        x, y, 
+                        static_cast<float>(x * TILE_SIZE), 
+                        static_cast<float>(y * TILE_SIZE), 
+                        false, false
+                    };
+                    boulderTiles.push_back(boulder);
+                }
                 break;
             case 4:
                 player.x = x;

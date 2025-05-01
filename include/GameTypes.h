@@ -7,8 +7,12 @@
 
 struct Player;
 
+//struct block nang cao voi trong luc
 struct Block {
-    int x, y;
+    int x, y;                   //grid position
+    float pixelX, pixelY;       // actual pixel position for smooth movement
+    bool isFalling = false;
+    bool needsUpdate = false;   //whether the block needs position update
 };
 
 //def nhat kim cuong

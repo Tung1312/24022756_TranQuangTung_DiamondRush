@@ -11,3 +11,5 @@ const char* PLAYER_UNDER_BOULDER_PATH = "assets/player_under_boulder.png";
 
 const char* LEAVES_SOUND_PATH = "assets/sound/leaves.wav";
 const char* COLLECT_SOUND_PATH = "assets/sound/collect.wav";
+
+const char* LEVEL_PATH = "levels/map.lvl";

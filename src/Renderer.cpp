@@ -67,21 +67,45 @@ void render() {
 
     //render diamonds
     for (const auto& diamond : diamonds) {
-        SDL_Rect diamondRect = {
-            diamond.x * TILE_SIZE - offsetX,
-            diamond.y * TILE_SIZE - offsetY + verticalPadding,
-            TILE_SIZE, TILE_SIZE
-        };
+        SDL_Rect diamondRect;
+        
+        if (diamond.isFalling || diamond.needsUpdate) {
+            //su dung vi tri pixel khi roi
+            diamondRect = {
+                static_cast<int>(diamond.pixelX) - offsetX,
+                static_cast<int>(diamond.pixelY) - offsetY + verticalPadding,
+                TILE_SIZE, TILE_SIZE
+            };
+        } else {
+            //su dung vi tri grid khi khong roi
+            diamondRect = {
+                diamond.x * TILE_SIZE - offsetX,
+                diamond.y * TILE_SIZE - offsetY + verticalPadding,
+                TILE_SIZE, TILE_SIZE
+            };
+        }
+        
         SDL_RenderCopy(renderer, diamondTexture, NULL, &diamondRect);
     }
 
     //render boulders
     for (const auto& boulder : boulderTiles) {
-        SDL_Rect boulderRect = {
-            boulder.x * TILE_SIZE - offsetX,
-            boulder.y * TILE_SIZE - offsetY + verticalPadding,
-            TILE_SIZE, TILE_SIZE
-        };
+        SDL_Rect boulderRect;
+        
+        if (boulder.isFalling || boulder.needsUpdate) {
+            boulderRect = {
+                static_cast<int>(boulder.pixelX) - offsetX,
+                static_cast<int>(boulder.pixelY) - offsetY + verticalPadding,
+                TILE_SIZE, TILE_SIZE
+            };
+        } else {
+            boulderRect = {
+                boulder.x * TILE_SIZE - offsetX,
+                boulder.y * TILE_SIZE - offsetY + verticalPadding,
+                TILE_SIZE, TILE_SIZE
+            };
+        }
+        
         SDL_RenderCopy(renderer, boulderTexture, NULL, &boulderRect);
     }
 

@@ -29,7 +29,10 @@ int main(int argc, char* argv[]) {
             }
         }
         
-        //kiem tra xem nguoi cho dang o duoi boulder khong
+        applyGravityToBoulders();
+        applyGravityToDiamonds();
+        
+        //under boulder
         isPlayerUnderBoulder = false;
         for (const auto& boulder : boulderTiles) {
             if (boulder.x == player.x && boulder.y == player.y - 1) {
@@ -38,7 +41,7 @@ int main(int argc, char* argv[]) {
             }
         }
         
-        // Update player animation
+        //update player animation
         player.updateAnimation();
         
         //Render game
