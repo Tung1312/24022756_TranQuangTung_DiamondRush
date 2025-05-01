@@ -53,16 +53,23 @@ void Player::render(SDL_Renderer* renderer, int offsetX, int offsetY, int vertic
 }
 
 void Player::move(int dx, int dy) {
+    // kiem tra huong di chuyen cua nguoi choi
+    // neu nguoi choi di chuyen sang trai va flip = false thi khong di chuyen
+    // neu nguoi choi di chuyen sang phai va flip = true thi khong di chuyen
+    if ((dx < 0 && !flip) || (dx > 0 && flip)) {
+        flip = (dx < 0);
+        isAnimating = true;
+        return;
+    }
+    
     //tinh toan vi tri di chuyen
     int newX = x + dx;
     int newY = y + dy;
     
     //lat hinh nguoi choi
     if (dx < 0) {
-        flip = true;
         isAnimating = true;
     } else if (dx > 0) {
-        flip = false;
         isAnimating = true;
     } else if (dy != 0) {
         isAnimating = true;
@@ -86,7 +93,7 @@ void Player::move(int dx, int dy) {
     // neu co va cham thi xoa tile va play am thanh
     for (auto it = leavesTiles.begin(); it != leavesTiles.end(); ++it) {
         if (it->first == x && it->second == y) {
-                        if (leavesSound) {
+            if (leavesSound) {
                 Mix_PlayChannel(-1, leavesSound, 0);
             }
             leavesTiles.erase(it);
