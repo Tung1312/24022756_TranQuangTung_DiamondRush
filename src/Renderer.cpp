@@ -11,10 +11,12 @@ extern SDL_Texture* mapTexture;
 extern SDL_Texture* leavesTexture;
 extern SDL_Texture* boulderTexture;
 extern SDL_Texture* diamondTexture;
+extern SDL_Texture* playerUnderBoulderTexture;
 extern Player player;
 extern TileList leavesTiles;
 extern BlockList diamonds;
 extern BlockList boulderTiles;
+extern bool isPlayerUnderBoulder;
 
 SDL_Texture* loadTexture(const char* path) {
     SDL_Texture* texture = IMG_LoadTexture(renderer, path);
@@ -83,9 +85,18 @@ void render() {
         SDL_RenderCopy(renderer, boulderTexture, NULL, &boulderRect);
     }
 
-    // Update player animation and render
-    player.updateAnimation();
+    //player render handling
+    if (isPlayerUnderBoulder) {
+        //render nguoi choi o duoi boulder
+        SDL_Rect warningRect = {
+            player.x * TILE_SIZE - offsetX,
+            player.y * TILE_SIZE - offsetY + verticalPadding,  // Position above player
+            TILE_SIZE, TILE_SIZE
+        };
+        SDL_RenderCopy(renderer, playerUnderBoulderTexture, NULL, &warningRect);
+    } else {
+    //render nguoi choi binh thuong
     player.render(renderer, offsetX, offsetY, verticalPadding);
-
+    }
     SDL_RenderPresent(renderer);
 }

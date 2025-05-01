@@ -3,6 +3,7 @@
 #include "../include/Player.h"
 #include "../include/Renderer.h"
 #include "../include/Objects.h"
+#include "../include/GameTypes.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
@@ -16,6 +17,7 @@ SDL_Texture* playerTexture = nullptr;
 SDL_Texture* leavesTexture = nullptr;
 SDL_Texture* boulderTexture = nullptr;
 SDL_Texture* diamondTexture = nullptr;
+SDL_Texture* playerUnderBoulderTexture = nullptr;
 
 Mix_Chunk* leavesSound = nullptr;
 Mix_Chunk* collectSound = nullptr;
@@ -26,6 +28,7 @@ TileList blockedTiles;
 TileList leavesTiles;
 BlockList diamonds;
 BlockList boulderTiles;
+bool isPlayerUnderBoulder = false;
 
 bool init() {
     //khoi dong SDL
@@ -46,7 +49,7 @@ bool init() {
         std::cout << "Renderer creation failed: " << SDL_GetError() << std::endl;
         return false;
     }
-    
+   
     //SDL image
     if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
         std::cout << "SDL_image initialization failed: " << IMG_GetError() << std::endl;
@@ -65,6 +68,7 @@ bool init() {
     leavesTexture = loadTexture(LEAVES_PATH);
     boulderTexture = loadTexture(BOULDER_PATH);
     diamondTexture = loadTexture(DIAMOND_PATH);
+playerUnderBoulderTexture = loadTexture(PLAYER_UNDER_BOULDER_PATH); // Load warning texture
     
     // load am thanh
     leavesSound = Mix_LoadWAV(LEAVES_SOUND_PATH);
@@ -78,7 +82,8 @@ bool init() {
     
     loadLevelData("levels/map.lvl");
     
-    return mapTexture && playerTexture && leavesTexture && boulderTexture && diamondTexture;
+    return mapTexture && playerTexture && leavesTexture && 
+boulderTexture && diamondTexture && playerUnderBoulderTexture;
 }
 
 //input handling
@@ -108,6 +113,7 @@ void cleanup() {
     SDL_DestroyTexture(leavesTexture);
     SDL_DestroyTexture(boulderTexture);
     SDL_DestroyTexture(diamondTexture);
+    SDL_DestroyTexture(playerUnderBoulderTexture);
     
     Mix_FreeChunk(leavesSound);
     Mix_FreeChunk(collectSound);
