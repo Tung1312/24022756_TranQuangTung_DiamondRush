@@ -23,6 +23,10 @@ int main(int argc, char* argv[]) {
     Uint32 frameStart;
     int frameTime;
     
+    //tinh FPS
+    Uint32 frameCount = 0;
+    Uint32 fpsLastTime = SDL_GetTicks();
+    
     while (running) {
         frameStart = SDL_GetTicks();
         
@@ -53,6 +57,7 @@ int main(int argc, char* argv[]) {
                             if (leavesSound) {
                                 Mix_PlayChannel(-1, leavesSound, 0);
                             }
+                            leavesDestroyed++;
                             leavesTiles.erase(it);
                             break;
                         }
@@ -63,6 +68,7 @@ int main(int argc, char* argv[]) {
                             if (collectSound) {
                                 Mix_PlayChannel(-1, collectSound, 0);
                             }
+                            diamondsCollected++;
                             diamonds.erase(it);
                             break;
                         }
@@ -87,6 +93,14 @@ int main(int argc, char* argv[]) {
         
         //Render game
         render();
+        
+        //calculate FPS
+        frameCount++;
+        if (SDL_GetTicks() - fpsLastTime >= 1000) {
+            currentFPS = frameCount * 1000.0f / (SDL_GetTicks() - fpsLastTime);
+            frameCount = 0;
+            fpsLastTime = SDL_GetTicks();
+        }
         
         //fps
         frameTime = SDL_GetTicks() - frameStart;

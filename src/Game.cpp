@@ -7,7 +7,54 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+
+bool loadConfigFile(const std::string& filename) {
+    std::ifstream configFile(filename);
+    if (!configFile.is_open()) {
+        std::cout << "Could not open config file: " << filename << std::endl;
+        return false;
+    }
+    
+    std::string line;
+    while (std::getline(configFile, line)) {
+        //skip comment va empty lines
+        if (line.empty() || line[0] == '/' || line[0] == '#')
+            continue;
+            
+        //tim kiem '='
+        size_t equalsPos = line.find('=');
+        if (equalsPos == std::string::npos)
+            continue;
+            
+        //trich xuat key va value
+        std::string key = line.substr(0, equalsPos);
+        std::string value = line.substr(equalsPos + 1);
+        
+        // Trim whitespace from key and value
+        key.erase(0, key.find_first_not_of(" \t"));
+        key.erase(key.find_last_not_of(" \t") + 1);
+        value.erase(0, value.find_first_not_of(" \t"));
+        value.erase(value.find_last_not_of(" \t") + 1);
+        
+        //key-value pair processing
+        if (key == "DEBUG_MODE") {
+            if (value == "true" || value == "1") {
+                DEBUG_MODE = true;
+                std::cout << "Debug mode enabled" << std::endl;
+            } else {
+                DEBUG_MODE = false;
+                std::cout << "Debug mode disabled" << std::endl;
+            }
+        }
+    }
+    
+    configFile.close();
+    return true;
+}
 
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
@@ -22,6 +69,12 @@ SDL_Texture* playerUnderBoulderTexture = nullptr;
 Mix_Chunk* leavesSound = nullptr;
 Mix_Chunk* collectSound = nullptr;
 
+TTF_Font* gameFont = nullptr;
+
+int diamondsCollected = 0;
+int leavesDestroyed = 0;
+float currentFPS = 0.0f;
+
 //game obj
 Player player = {3, 4};
 TileList blockedTiles;
@@ -31,9 +84,25 @@ BlockList boulderTiles;
 bool isPlayerUnderBoulder = false;
 
 bool init() {
+    //load config truoc khi khoi dong game
+    loadConfigFile("config.cfg");
+    
     //khoi dong SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         std::cout << "SDL initialization failed: " << SDL_GetError() << std::endl;
+        return false;
+    }
+    
+    // Initialize SDL_ttf for text rendering
+    if (TTF_Init() < 0) {
+        std::cout << "SDL_ttf initialization failed: " << TTF_GetError() << std::endl;
+        return false;
+    }
+    
+    // Load font
+    gameFont = TTF_OpenFont(FONT_PATH, FONT_SIZE);
+    if (!gameFont) {
+        std::cout << "Failed to load font: " << TTF_GetError() << std::endl;
         return false;
     }
     
@@ -117,6 +186,9 @@ void cleanup() {
     
     Mix_FreeChunk(leavesSound);
     Mix_FreeChunk(collectSound);
+    
+    TTF_CloseFont(gameFont);
+    TTF_Quit();
     
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

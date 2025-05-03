@@ -104,18 +104,20 @@ void Player::move(int dx, int dy) {
             if (leavesSound) {
                 Mix_PlayChannel(-1, leavesSound, 0);
             }
+            leavesDestroyed++;
             leavesTiles.erase(it);
             break;
         }
     }
     
-//kiem tra va cham voi kim cuong
+    //kiem tra va cham voi kim cuong
     // neu co va cham thi xoa tile va play am thanh
     for (auto it = diamonds.begin(); it != diamonds.end(); ++it) {
         if (it->x == x && it->y == y) {
             if (collectSound) {
                 Mix_PlayChannel(-1, collectSound, 0);
             }
+            diamondsCollected++;
             diamonds.erase(it);
             break;
         }

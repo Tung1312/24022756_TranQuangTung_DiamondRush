@@ -3,6 +3,9 @@
 
 #include <SDL2/SDL.h>
 
+//debug mode flag
+extern bool DEBUG_MODE;
+
 const int SCREEN_WIDTH = 240;
 const int SCREEN_HEIGHT = 320;
 const int GRID_ROWS = 11;
@@ -25,10 +28,12 @@ extern const char* PLAYER_UNDER_BOULDER_PATH;
 
 extern const char* LEAVES_SOUND_PATH;
 extern const char* COLLECT_SOUND_PATH;
+extern const char* FONT_PATH;
 
 extern const char* LEVEL_PATH;
 
 const int FPS = 60;
 const int FRAME_DELAY = 1000 / FPS;
+const int FONT_SIZE = 10;
 
 #endif // CONSTANTS_H

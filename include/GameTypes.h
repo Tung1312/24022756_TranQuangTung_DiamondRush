@@ -2,6 +2,7 @@
 #define GAME_TYPES_H
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <vector>
 #include <utility>
 
@@ -29,5 +30,11 @@ extern BlockList boulderTiles; //Movable boulders
 //hien thi hinh anh nguoi choi o duoi boulder
 extern bool isPlayerUnderBoulder;
 extern SDL_Texture* playerUnderBoulderTexture;
+
+//debug mode
+extern TTF_Font* gameFont;
+extern int diamondsCollected;
+extern int leavesDestroyed;
+extern float currentFPS;
 
 #endif // GAME_TYPES_H
