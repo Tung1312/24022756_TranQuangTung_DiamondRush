@@ -196,3 +196,52 @@ void loadLevelData(const std::string& levelFile) {
     
     file.close();
 }
+
+// Thu nghiem viec day boulder
+//return true neu block da duoc day thanh cong
+bool tryPushBoulder(int playerX, int playerY, int dx, int dy) {
+    // Chi cho phep day sang trai (dx < 0) hoac sang phai (dx > 0)
+    if (dy != 0) {
+        return false; //return false neu di chuyen theo chiu doc
+    }
+    
+    //tinh toan vi tri truoc mat nguoi choi
+    int boulderX = playerX + dx;
+    int boulderY = playerY + dy;
+    
+    //tinh toan vi tri xac dinh cua boulder sau khi duoc day
+    int targetX = boulderX + dx;
+    int targetY = boulderY + dy;
+    
+    //Ham tim kiem boulder can day
+    Block* boulderToPush = nullptr;
+    for (auto& boulder : boulderTiles) {
+        if (boulder.x == boulderX && boulder.y == boulderY && !boulder.isFalling) {
+            boulderToPush = &boulder;
+            break;
+        }
+    }
+    
+    if (!boulderToPush) {
+        return false; //false neu khong tim thay boulder
+    }
+    
+    // kiem tra xem vi tri xac dinh co bi chan khong
+    if (isBlockedForBlocks(targetX, targetY)) {
+        return false; //false neu bi chan
+    }
+    
+    // cap nhat vi tri cho boulder
+    boulderToPush->x = targetX;
+    boulderToPush->y = targetY;
+    boulderToPush->pixelX = static_cast<float>(targetX * TILE_SIZE);
+    boulderToPush->pixelY = static_cast<float>(targetY * TILE_SIZE);
+    
+    //kiem tra xem boulder co the roi xuong duoi khong
+    if (!isBlockedForBlocks(targetX, targetY + 1)) {
+        boulderToPush->isFalling = true;
+        boulderToPush->needsUpdate = true;
+    }
+    
+    return true; //day boulder thanh cong
+}

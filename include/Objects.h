@@ -14,6 +14,9 @@ bool isBlockedForBlocks(int x, int y);
 void applyGravityToBoulders();
 void applyGravityToDiamonds();
 
+//kiem tra xem co the day block hay khong
+bool tryPushBoulder(int playerX, int playerY, int dx, int dy);
+
 //load map
 void loadLevelData(const std::string& levelFile);
 

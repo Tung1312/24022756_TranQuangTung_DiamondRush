@@ -66,12 +66,8 @@ void Player::move(int dx, int dy) {
     int newX = x + dx;
     int newY = y + dy;
     
-    //lat hinh nguoi choi
-    if (dx < 0) {
-        isAnimating = true;
-    } else if (dx > 0) {
-        isAnimating = true;
-    } else if (dy != 0) {
+    // Update animation
+    if (dx != 0 || dy != 0) {
         isAnimating = true;
     }
     
@@ -80,7 +76,19 @@ void Player::move(int dx, int dy) {
         return;
     }
     
-    //kiem tra va cham
+    //kiem tra viec day boulder
+    for (const auto& boulder : boulderTiles) {
+        if (boulder.x == newX && boulder.y == newY && !boulder.isFalling) {
+            //neu boulder co the day duoc
+            isPushing = true;
+            pushStartTime = SDL_GetTicks();
+            pushDx = dx;
+            pushDy = dy;
+            return; // khong di chuyen
+        }
+    }
+    
+    //check regular collision
     if (isBlockedForPlayer(newX, newY)) {
         return;
     }
@@ -101,7 +109,7 @@ void Player::move(int dx, int dy) {
         }
     }
     
-    //kiem tra va cham voi kim cuong
+//kiem tra va cham voi kim cuong
     // neu co va cham thi xoa tile va play am thanh
     for (auto it = diamonds.begin(); it != diamonds.end(); ++it) {
         if (it->x == x && it->y == y) {
