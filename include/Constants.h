@@ -14,9 +14,8 @@ const int TILE_SIZE = 24;
 const int GRID_WIDTH = GRID_COLS * TILE_SIZE;
 const int GRID_HEIGHT = GRID_ROWS * TILE_SIZE;
 
-const float FALL_SPEED = 1.45f;
-
-const Uint32 PUSH_DELAY = 400;
+extern float FALL_SPEED;
+extern Uint32 PUSH_DELAY;
 
 extern const char* WINDOW_TITLE;
 extern const char* MAP_PATH;
@@ -32,6 +31,13 @@ extern const char* FONT_PATH;
 
 extern const char* LEVEL_PATH;
 
+//audio settings
+extern bool SOUND_ENABLED;
+extern bool MUSIC_ENABLED;
+extern float MUSIC_VOLUME;
+extern float SOUND_VOLUME;
+
+//game settings
 const int FPS = 60;
 const int FRAME_DELAY = 1000 / FPS;
 const int FONT_SIZE = 10;

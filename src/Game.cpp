@@ -15,7 +15,7 @@
 bool loadConfigFile(const std::string& filename) {
     std::ifstream configFile(filename);
     if (!configFile.is_open()) {
-        std::cout << "Could not open config file: " << filename << std::endl;
+        printf("Could not open config file: %s\n", filename.c_str());
         return false;
     }
     
@@ -41,14 +41,51 @@ bool loadConfigFile(const std::string& filename) {
         value.erase(value.find_last_not_of(" \t") + 1);
         
         //key-value pair processing
-        if (key == "DEBUG_MODE") {
-            if (value == "true" || value == "1") {
-                DEBUG_MODE = true;
-                std::cout << "Debug mode enabled" << std::endl;
-            } else {
-                DEBUG_MODE = false;
-                std::cout << "Debug mode disabled" << std::endl;
+        try {
+            if (key == "DEBUG_MODE") {
+                DEBUG_MODE = (value == "true" || value == "1");
+                printf("Debug mode: %s\n", DEBUG_MODE ? "enabled" : "disabled");
+            } 
+            else if (key == "WINDOW_TITLE") {
+                static std::string windowTitleStr = value;
+                WINDOW_TITLE = windowTitleStr.c_str();
+                printf("Window title set to: %s\n", WINDOW_TITLE);
             }
+            else if (key == "FALL_SPEED") {
+                FALL_SPEED = std::stof(value);
+                printf("Fall speed set to: %.2f\n", FALL_SPEED);
+            }
+            else if (key == "PUSH_DELAY") {
+                PUSH_DELAY = static_cast<Uint32>(std::stoi(value));
+                printf("Push delay set to: %u ms\n", PUSH_DELAY);
+            }
+            else if (key == "INITIAL_LEVEL") {
+                static std::string levelPathStr = value;
+                LEVEL_PATH = levelPathStr.c_str();
+                printf("Initial level set to: %s\n", LEVEL_PATH);
+            }
+            else if (key == "SOUND_ENABLED") {
+                SOUND_ENABLED = (value == "true" || value == "1");
+                printf("Sound: %s\n", SOUND_ENABLED ? "enabled" : "disabled");
+            }
+            else if (key == "MUSIC_ENABLED") {
+                MUSIC_ENABLED = (value == "true" || value == "1");
+                printf("Music: %s\n", MUSIC_ENABLED ? "enabled" : "disabled");
+            }
+            else if (key == "MUSIC_VOLUME") {
+                MUSIC_VOLUME = std::stof(value);
+                if (MUSIC_VOLUME < 0.0f) MUSIC_VOLUME = 0.0f;
+                if (MUSIC_VOLUME > 1.0f) MUSIC_VOLUME = 1.0f;
+                printf("Music volume set to: %.2f\n", MUSIC_VOLUME);
+            }
+            else if (key == "SOUND_VOLUME") {
+                SOUND_VOLUME = std::stof(value);
+                if (SOUND_VOLUME < 0.0f) SOUND_VOLUME = 0.0f;
+                if (SOUND_VOLUME > 1.0f) SOUND_VOLUME = 1.0f;
+                printf("Sound volume set to: %.2f\n", SOUND_VOLUME);
+            }
+        } catch (const std::exception& e) {
+            printf("Error parsing config value for %s: %s\n", key.c_str(), e.what());
         }
     }
     
@@ -85,53 +122,72 @@ bool isPlayerUnderBoulder = false;
 
 bool init() {
     //load config truoc khi khoi dong game
+    printf("Loading configuration...\n");
     loadConfigFile("config.cfg");
     
     //khoi dong SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
-        std::cout << "SDL initialization failed: " << SDL_GetError() << std::endl;
+        printf("SDL initialization failed: %s\n", SDL_GetError());
         return false;
     }
     
     // Initialize SDL_ttf for text rendering
     if (TTF_Init() < 0) {
-        std::cout << "SDL_ttf initialization failed: " << TTF_GetError() << std::endl;
+        printf("SDL_ttf initialization failed: %s\n", TTF_GetError());
         return false;
     }
     
     // Load font
     gameFont = TTF_OpenFont(FONT_PATH, FONT_SIZE);
     if (!gameFont) {
-        std::cout << "Failed to load font: " << TTF_GetError() << std::endl;
+        printf("Failed to load font: %s\n", TTF_GetError());
         return false;
     }
     
     window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
                              SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (!window) {
-        std::cout << "Window creation failed: " << SDL_GetError() << std::endl;
+        printf("Window creation failed: %s\n", SDL_GetError());
         return false;
     }
     
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (!renderer) {
-        std::cout << "Renderer creation failed: " << SDL_GetError() << std::endl;
+        printf("Renderer creation failed: %s\n", SDL_GetError());
         return false;
     }
    
     //SDL image
     if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
-        std::cout << "SDL_image initialization failed: " << IMG_GetError() << std::endl;
+        printf("SDL_image initialization failed: %s\n", IMG_GetError());
         return false;
     }
     
     //mixerrrrrrrrrr
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-        std::cout << "SDL_mixer initialization failed: " << Mix_GetError() << std::endl;
+        printf("SDL_mixer initialization failed: %s\n", Mix_GetError());
         return false;
     }
     
+    //audio settings
+    if (SOUND_ENABLED) {
+        Mix_Volume(-1, static_cast<int>(SOUND_VOLUME * MIX_MAX_VOLUME));
+        printf("Setting sound volume to %d\n", static_cast<int>(SOUND_VOLUME * MIX_MAX_VOLUME));
+    } else {
+        Mix_Volume(-1, 0);
+        printf("Sound disabled\n");
+    }
+    
+    if (MUSIC_ENABLED) {
+        Mix_VolumeMusic(static_cast<int>(MUSIC_VOLUME * MIX_MAX_VOLUME));
+        printf("Setting music volume to %d\n", static_cast<int>(MUSIC_VOLUME * MIX_MAX_VOLUME));
+    } else {
+        Mix_VolumeMusic(0);
+        printf("Music disabled\n");
+    }
+    
     //load hinh anh
+    printf("Loading textures...\n");
     mapTexture = loadTexture(MAP_PATH);
     playerTexture = loadTexture(PLAYER_PATH);
     leavesTexture = loadTexture(LEAVES_PATH);
@@ -140,15 +196,17 @@ bool init() {
     playerUnderBoulderTexture = loadTexture(PLAYER_UNDER_BOULDER_PATH); 
     
     // load am thanh
+    printf("Loading sound effects...\n");
     leavesSound = Mix_LoadWAV(LEAVES_SOUND_PATH);
     collectSound = Mix_LoadWAV(COLLECT_SOUND_PATH);
     
     if (!leavesSound || !collectSound) {
-        std::cout << "Failed to load sound effects: " << Mix_GetError() << std::endl;
+        printf("Failed to load sound effects: %s\n", Mix_GetError());
     }
     
     player.texture = playerTexture;
     
+    printf("Loading level: %s\n", LEVEL_PATH);
     loadLevelData(LEVEL_PATH);
     
     return mapTexture && playerTexture && leavesTexture && 

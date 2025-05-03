@@ -158,23 +158,45 @@ void render() {
     if (DEBUG_MODE) {
         //debug info strings
         std::string fpsText = "FPS: " + std::to_string(static_cast<int>(currentFPS));
-        std::string diamondText = "Collected diamonds: " + std::to_string(diamondsCollected);
-        std::string leavesText = "Leaves destroyed: " + std::to_string(leavesDestroyed);
+        
+        std::string collectiblesText = "Diamonds: " + std::to_string(diamondsCollected) + 
+                                      " | Leaves: " + std::to_string(leavesDestroyed);
+        
+        //player state
+        std::string playerState;
+        if (isPlayerUnderBoulder) {
+            playerState = "UNDER BOULDER";
+        } else if (player.isPushing) {
+            playerState = "PUSHING BOULDER";
+        } else if (player.isAnimating) {
+            playerState = "STANDING";
+        }
+        
+        std::string stateText = "State: " + playerState;
+        
         std::string positionText = "Position: (" + std::to_string(player.x) + 
                                     ", " + std::to_string(player.y) + ") Facing: " + 
                                     (player.flip ? "Left" : "Right");
         
-        // push timer
-        // std::string pushText = "";
-        // if (player.isPushing) {
-        //     Uint32 currentTime = SDL_GetTicks();
-        //     Uint32 elapsedTime = currentTime - player.pushStartTime;
-        //     int remaining = static_cast<int>((PUSH_DELAY - elapsedTime) / 10);
-        //     remaining = std::max(0, remaining);
-        //     pushText = "Push Timer: " + std::to_string(remaining / 10.0f) + "s";
-        // }
+        std::string audioText = "Audio: Sound " + std::string(SOUND_ENABLED ? "ON" : "OFF") + 
+                                " (" + std::to_string(static_cast<int>(SOUND_VOLUME * 100)) + "%) | Music " + 
+                                std::string(MUSIC_ENABLED ? "ON" : "OFF") + 
+                                " (" + std::to_string(static_cast<int>(MUSIC_VOLUME * 100)) + "%)";
         
-        //render debug texts
+        //background
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180); // 70% opacity
+        
+        //tinh toan kich thuoc debug overlay
+        int lineHeight = 16;
+        int totalLines = 5; // FPS, collectibles, state, position, audio
+        int totalHeight = lineHeight * totalLines + 10;
+        
+        SDL_Rect debugBgRect = {0, 0, SCREEN_WIDTH, totalHeight};
+        SDL_RenderFillRect(renderer, &debugBgRect);
+        
+        //reset blend mode
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
         SDL_Color debugColor = {255, 255, 255, 255};
         
         //FPS counter
@@ -187,49 +209,45 @@ void render() {
             SDL_DestroyTexture(fpsTexture);
         }
         
-        //diamond counter
-        SDL_Texture* diamondTexture = renderText(diamondText, debugColor);
-        if (diamondTexture) {
+        //bo dem diamonds va leaves
+        SDL_Texture* collectiblesTexture = renderText(collectiblesText, debugColor);
+        if (collectiblesTexture) {
             int textWidth, textHeight;
-            SDL_QueryTexture(diamondTexture, NULL, NULL, &textWidth, &textHeight);
-            SDL_Rect diamondRect = {5, 25, textWidth, textHeight};
-            SDL_RenderCopy(renderer, diamondTexture, NULL, &diamondRect);
-            SDL_DestroyTexture(diamondTexture);
+            SDL_QueryTexture(collectiblesTexture, NULL, NULL, &textWidth, &textHeight);
+            SDL_Rect collectiblesRect = {5, 5 + lineHeight, textWidth, textHeight};
+            SDL_RenderCopy(renderer, collectiblesTexture, NULL, &collectiblesRect);
+            SDL_DestroyTexture(collectiblesTexture);
         }
         
-        //leaves counter
-        SDL_Texture* leavesTexture = renderText(leavesText, debugColor);
-        if (leavesTexture) {
+        // Player state display
+        SDL_Texture* stateTexture = renderText(stateText, debugColor);
+        if (stateTexture) {
             int textWidth, textHeight;
-            SDL_QueryTexture(leavesTexture, NULL, NULL, &textWidth, &textHeight);
-            SDL_Rect leavesRect = {5, 45, textWidth, textHeight};
-            SDL_RenderCopy(renderer, leavesTexture, NULL, &leavesRect);
-            SDL_DestroyTexture(leavesTexture);
+            SDL_QueryTexture(stateTexture, NULL, NULL, &textWidth, &textHeight);
+            SDL_Rect stateRect = {5, 5 + lineHeight * 2, textWidth, textHeight};
+            SDL_RenderCopy(renderer, stateTexture, NULL, &stateRect);
+            SDL_DestroyTexture(stateTexture);
         }
-
+        
         //player coords
         SDL_Texture* posTexture = renderText(positionText, debugColor);
         if (posTexture) {
             int textWidth, textHeight;
             SDL_QueryTexture(posTexture, NULL, NULL, &textWidth, &textHeight);
-            SDL_Rect posRect = {5, 65, textWidth, textHeight};
+            SDL_Rect posRect = {5, 5 + lineHeight * 3, textWidth, textHeight};
             SDL_RenderCopy(renderer, posTexture, NULL, &posRect);
             SDL_DestroyTexture(posTexture);
         }
         
-        // Push timer (chi xuang khi nguoi choi dang day boulder)
-        // if (!pushText.empty()) {
-        //     SDL_Texture* pushTexture = renderText(pushText, debugColor);
-        //     if (pushTexture) {
-        //         int textWidth, textHeight;
-        //         SDL_QueryTexture(pushTexture, NULL, NULL, &textWidth, &textHeight);
-        //         SDL_Rect pushRect = {5, 65, textWidth, textHeight};
-        //         SDL_RenderCopy(renderer, pushTexture, NULL, &pushRect);
-        //         SDL_DestroyTexture(pushTexture);
-        //     }
-        // }
-
-
+        //audio stuff br br
+        SDL_Texture* audioTexture = renderText(audioText, debugColor);
+        if (audioTexture) {
+            int textWidth, textHeight;
+            SDL_QueryTexture(audioTexture, NULL, NULL, &textWidth, &textHeight);
+            SDL_Rect audioRect = {5, 5 + lineHeight * 4, textWidth, textHeight};
+            SDL_RenderCopy(renderer, audioTexture, NULL, &audioRect);
+            SDL_DestroyTexture(audioTexture);
+        }
     }
 
     SDL_RenderPresent(renderer);
