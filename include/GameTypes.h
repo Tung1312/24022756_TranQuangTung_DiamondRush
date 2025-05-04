@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <vector>
 #include <utility>
 
@@ -30,11 +31,30 @@ extern BlockList boulderTiles; //Movable boulders
 //hien thi hinh anh nguoi choi o duoi boulder
 extern bool isPlayerUnderBoulder;
 extern SDL_Texture* playerUnderBoulderTexture;
+extern bool wasUnderBoulder;
 
 //debug mode
 extern TTF_Font* gameFont;
 extern int diamondsCollected;
 extern int leavesDestroyed;
 extern float currentFPS;
+extern bool showDebugOverlay; //debug display toggle
+
+//player death and game over
+extern bool isPlayerDead;
+extern bool isPlayingDeathSequence;
+extern Uint32 playerUnderBoulderStartTime;
+extern Uint32 deathSequenceStartTime;
+extern SDL_Texture* skeletonTexture;
+extern Mix_Chunk* crashSound;
+extern Mix_Chunk* gameOverSound;
+
+//game winning condition
+extern bool hasWon;
+extern std::vector<std::pair<int, int>> victoryTiles;
+extern Mix_Chunk* victorySound;
+
+extern int playerStartX;
+extern int playerStartY;
 
 #endif // GAME_TYPES_H

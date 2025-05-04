@@ -8,9 +8,21 @@
 
 extern Mix_Chunk* leavesSound;
 extern Mix_Chunk* collectSound;
+extern Mix_Chunk* victorySound;
 extern SDL_Renderer* renderer;
 
+Uint32 lastPushTime = 0;
+
 void Player::updateAnimation() {
+    //reset pushing state
+    if (isPushing) {
+        Uint32 currentTime = SDL_GetTicks();
+        if (currentTime - pushStartTime > PUSH_DELAY) {
+            isPushing = false;
+        }
+    }
+    
+    //animation update
     if (!isAnimating) return;
     
     Uint32 currentTime = SDL_GetTicks();
@@ -53,6 +65,14 @@ void Player::render(SDL_Renderer* renderer, int offsetX, int offsetY, int vertic
 }
 
 void Player::move(int dx, int dy) {
+    //get current time (for cooldown checks)
+    Uint32 currentTime = SDL_GetTicks();
+    
+    //kiem tra xem nguoi choi co dang day boulder khong
+    if (isPushing && currentTime - pushStartTime < PUSH_DELAY) {
+        return; //khong cho di chuyen neu dang day boulder
+    }
+    
     // kiem tra huong di chuyen cua nguoi choi
     // neu nguoi choi di chuyen sang trai va flip = false thi khong di chuyen
     // neu nguoi choi di chuyen sang phai va flip = true thi khong di chuyen
@@ -66,7 +86,7 @@ void Player::move(int dx, int dy) {
     int newX = x + dx;
     int newY = y + dy;
     
-    // Update animation
+    // update animation
     if (dx != 0 || dy != 0) {
         isAnimating = true;
     }
@@ -77,18 +97,60 @@ void Player::move(int dx, int dy) {
     }
     
     //kiem tra viec day boulder
-    for (const auto& boulder : boulderTiles) {
+    for (auto& boulder : boulderTiles) {
         if (boulder.x == newX && boulder.y == newY && !boulder.isFalling) {
-            //neu boulder co the day duoc
-            isPushing = true;
-            pushStartTime = SDL_GetTicks();
-            pushDx = dx;
-            pushDy = dy;
-            return; // khong di chuyen
+            //only push horizontal
+            if (dy != 0) return;
+            
+            // if new push attempt, start pushing timer
+            //but no movement
+            if (!isPushing) {
+                isPushing = true;
+                pushStartTime = currentTime;
+                pushDx = dx;  //save push direction
+                pushDy = dy;
+                return;
+            }
+            
+            // if already pushing + the delay passed, complete push
+            if (isPushing && currentTime - pushStartTime >= PUSH_DELAY) {
+            int pushX = newX + dx;
+            int pushY = newY + dy;
+            
+            // check valid push destination
+            if (pushX < 0 || pushX >= GRID_COLS || pushY < 0 || pushY >= GRID_ROWS) {
+                return;
+            }
+            
+            // check for walls + other boulders
+            if (isBlockedForBlocks(pushX, pushY)) {
+                return;
+            }
+            
+            //push success - move boulder
+            boulder.x = pushX;
+            boulder.y = pushY;
+            boulder.pixelX = pushX * TILE_SIZE;
+            boulder.pixelY = pushY * TILE_SIZE;
+            
+            //reset push state
+            isPushing = false;
+            lastPushTime = currentTime;
+            return;
+        }
+
+            return;
         }
     }
+
+    // Kiểm tra nếu người chơi đang đẩy boulder nhưng đã di chuyển ra xa
+    // (tức là người chơi không còn liền kề với boulder mà họ đang đẩy),
+    // hủy trạng thái đẩy để đặt lại tương tác.
+    if (isPushing) {
+        isPushing = false;
+    }
     
-    //check regular collision
+    //collision check
     if (isBlockedForPlayer(newX, newY)) {
         return;
     }
@@ -119,6 +181,18 @@ void Player::move(int dx, int dy) {
             }
             diamondsCollected++;
             diamonds.erase(it);
+            break;
+        }
+    }
+    
+    //check victory
+    for (const auto& victoryTile : victoryTiles) {
+        if (victoryTile.first == x && victoryTile.second == y) {
+            if (!hasWon && victorySound && SOUND_ENABLED) {
+                Mix_HaltChannel(-1);
+                Mix_PlayChannel(-1, victorySound, 0);
+                hasWon = true;
+            }
             break;
         }
     }

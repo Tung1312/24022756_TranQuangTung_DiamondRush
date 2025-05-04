@@ -5,7 +5,11 @@
 
 //khoi tao
 bool init();
+
 void cleanup();
+
 void handleInput(SDL_Event& e);
+
+void resetLevel();
 
 #endif // GAME_H

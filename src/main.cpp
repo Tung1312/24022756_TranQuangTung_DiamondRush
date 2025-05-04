@@ -8,9 +8,14 @@
 #include <SDL2/SDL_mixer.h>
 #include <iostream>
 
-// Add these external declarations
 extern Mix_Chunk* leavesSound;
 extern Mix_Chunk* collectSound;
+extern Mix_Chunk* crashSound;
+extern Mix_Chunk* gameOverSound;
+extern bool SOUND_ENABLED;
+
+// static bool crashSoundPlayed = false;
+// static bool gameOverSoundPlayed = false;
 
 int main(int argc, char* argv[]) {
     if (!init()) {
@@ -23,90 +28,102 @@ int main(int argc, char* argv[]) {
     Uint32 frameStart;
     int frameTime;
     
-    //tinh FPS
-    Uint32 frameCount = 0;
-    Uint32 fpsLastTime = SDL_GetTicks();
+    // //tinh FPS
+    // Uint32 frameCount = 0;
+    // Uint32 fpsLastTime = SDL_GetTicks();
     
     while (running) {
         frameStart = SDL_GetTicks();
-        
+
+        //victory condition
+        if (hasWon) {
+            if (!Mix_Playing(-1)) {
+                printf("Victory! Level completed.\n");
+                running = false;  // exit game loop
+            }
+            // Only render in victory state, skip game logic
+        } 
+        else {
+            // Process input        
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 running = false;
+            } else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_r) {
+                // R to reset
+                if (!isPlayerDead) {
+                    isPlayerDead = true;
+                    Mix_HaltChannel(-1);
+                    // if (gameOverSound && SOUND_ENABLED) {
+                    //     Mix_PlayChannel(-1, gameOverSound, 0);
+                    // }
+                }
             } else {
                 handleInput(e);
             }
         }
         
-        applyGravityToBoulders();
-        applyGravityToDiamonds();
-        
-        //kiem tra xem nguoi choi co dang day boulder khong
-        if (player.isPushing) {
-            Uint32 currentTime = SDL_GetTicks();
-            if (currentTime - player.pushStartTime >= PUSH_DELAY) {
-                //thu day boulder
-                if (tryPushBoulder(player.x, player.y, player.pushDx, player.pushDy)) {
-                    //di chuyen nguoi choi neu thanh cong
-                    player.x += player.pushDx;
-                    player.y += player.pushDy;
-                    
-                    //kiem tra leaves voi diamons o vi tri moi
-                    for (auto it = leavesTiles.begin(); it != leavesTiles.end(); ++it) {
-                        if (it->first == player.x && it->second == player.y) {
-                            if (leavesSound) {
-                                Mix_PlayChannel(-1, leavesSound, 0);
-                            }
-                            leavesDestroyed++;
-                            leavesTiles.erase(it);
-                            break;
-                        }
-                    }
-                    
-                    for (auto it = diamonds.begin(); it != diamonds.end(); ++it) {
-                        if (it->x == player.x && it->y == player.y) {
-                            if (collectSound) {
-                                Mix_PlayChannel(-1, collectSound, 0);
-                            }
-                            diamondsCollected++;
-                            diamonds.erase(it);
-                            break;
-                        }
-                    }
+        if (!isPlayerDead) {
+            bool wasUnderBoulder = isPlayerUnderBoulder;
+            isPlayerUnderBoulder = false;
+            
+            for (const auto& boulder : boulderTiles) {
+                if (boulder.x == player.x && boulder.y == player.y - 1) {
+                    isPlayerUnderBoulder = true;
+                    break;
                 }
-                //reset trang thai day boulder
-                player.isPushing = false;
+            }
+            
+            //track time under boulder
+            if (isPlayerUnderBoulder && !wasUnderBoulder) {
+                playerUnderBoulderStartTime = SDL_GetTicks();
+            } else if (!isPlayerUnderBoulder) {
+                playerUnderBoulderStartTime = 0;
+            }
+            
+            //kiem tra thoi gian duoi boulder 
+            if (isPlayerUnderBoulder && 
+                SDL_GetTicks() - playerUnderBoulderStartTime >= BOULDER_CRUSH_TIME) {
+                
+                isPlayerDead = true;
+                Mix_HaltChannel(-1);
+                
+                if (crashSound && SOUND_ENABLED) {
+                    Mix_PlayChannel(-1, crashSound, 0);
+                }
+            }
+            
+            //game physics
+            applyGravityToBoulders();
+            applyGravityToDiamonds();
+            player.updateAnimation();
+        } else {
+            //death sequence
+            if (!Mix_Playing(-1)) {
+                static bool gameOverSoundPlayed = false;
+                
+                if (!gameOverSoundPlayed) {
+                    if (gameOverSound && SOUND_ENABLED) {
+                        Mix_PlayChannel(-1, gameOverSound, 0);
+                        gameOverSoundPlayed = true;
+                    }
+                } else {
+                    //if game over sound finished, reset level
+                    resetLevel();
+                    gameOverSoundPlayed = false;
+}
+                }
             }
         }
         
-        //under boulder
-        isPlayerUnderBoulder = false;
-        for (const auto& boulder : boulderTiles) {
-            if (boulder.x == player.x && boulder.y == player.y - 1) {
-                isPlayerUnderBoulder = true;
-                break;
-            }
-        }
-        
-        //update player animation
-        player.updateAnimation();
-        
-        //Render game
         render();
         
-        //calculate FPS
-        frameCount++;
-        if (SDL_GetTicks() - fpsLastTime >= 1000) {
-            currentFPS = frameCount * 1000.0f / (SDL_GetTicks() - fpsLastTime);
-            frameCount = 0;
-            fpsLastTime = SDL_GetTicks();
-        }
-        
-        //fps
+        //FPS
         frameTime = SDL_GetTicks() - frameStart;
-        if (FRAME_DELAY > frameTime) {
+        if (frameTime < FRAME_DELAY) {
             SDL_Delay(FRAME_DELAY - frameTime);
         }
+        
+        currentFPS = 1000.0f / (SDL_GetTicks() - frameStart);
     }
     
     cleanup();

@@ -14,15 +14,24 @@ extern SDL_Texture* leavesTexture;
 extern SDL_Texture* boulderTexture;
 extern SDL_Texture* diamondTexture;
 extern SDL_Texture* playerUnderBoulderTexture;
+extern SDL_Texture* skeletonTexture;
+extern SDL_Texture* guiTexture;
 extern Player player;
 extern TileList leavesTiles;
 extern BlockList diamonds;
 extern BlockList boulderTiles;
 extern bool isPlayerUnderBoulder;
+extern bool isPlayerDead;
+extern bool isPlayingDeathSequence;
 extern int diamondsCollected;
 extern int leavesDestroyed;
 extern float currentFPS;
 extern TTF_Font* gameFont;
+extern bool showDebugOverlay;
+extern Uint32 playerUnderBoulderStartTime;
+extern Uint32 BOULDER_CRUSH_TIME;
+extern bool transitionToSkeletonDone;
+extern bool darkenElementsDone;
 
 SDL_Texture* loadTexture(const char* path) {
     SDL_Texture* texture = IMG_LoadTexture(renderer, path);
@@ -38,20 +47,17 @@ SDL_Texture* renderText(const std::string& text, SDL_Color color) {
         return nullptr;
     }
     
-    // Render text to a surface
     SDL_Surface* textSurface = TTF_RenderText_Solid(gameFont, text.c_str(), color);
     if (!textSurface) {
         std::cout << "Failed to create text surface: " << TTF_GetError() << std::endl;
         return nullptr;
     }
     
-    // Convert surface to texture
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     if (!textTexture) {
         std::cout << "Failed to create text texture: " << SDL_GetError() << std::endl;
     }
     
-    // Free the surface as it's no longer needed
     SDL_FreeSurface(textSurface);
     
     return textTexture;
@@ -61,7 +67,19 @@ void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    //tinh toan vi tri cua camera, nguoi choi luon o chinh giua man hinh
+    if (isPlayerDead) {
+        SDL_SetTextureColorMod(mapTexture, 0, 0, 0);
+        SDL_SetTextureColorMod(leavesTexture, 0, 0, 0);
+        SDL_SetTextureColorMod(diamondTexture, 0, 0, 0);
+        SDL_SetTextureColorMod(boulderTexture, 0, 0, 0);
+    } else {
+        SDL_SetTextureColorMod(mapTexture, 255, 255, 255);
+        SDL_SetTextureColorMod(leavesTexture, 255, 255, 255);
+        SDL_SetTextureColorMod(diamondTexture, 255, 255, 255);
+        SDL_SetTextureColorMod(boulderTexture, 255, 255, 255);
+    }
+
+    //tinh toan vi tri camera
     int offsetX = player.x * TILE_SIZE - SCREEN_WIDTH / 2 + TILE_SIZE / 2;
     int offsetY = player.y * TILE_SIZE - SCREEN_HEIGHT / 2 + TILE_SIZE / 2;
 
@@ -76,12 +94,12 @@ void render() {
     //offset vi tri map
     SDL_Rect mapSrcRect = {
         offsetX, offsetY,
-        SCREEN_WIDTH, SCREEN_HEIGHT
+        SCREEN_WIDTH, SCREEN_HEIGHT - 2 * verticalPadding
     };
     
     SDL_Rect mapDestRect = {
         0, verticalPadding,
-        SCREEN_WIDTH, GRID_HEIGHT
+        SCREEN_WIDTH, SCREEN_HEIGHT - 2 * verticalPadding
     };
     
     SDL_RenderCopy(renderer, mapTexture, &mapSrcRect, &mapDestRect);
@@ -140,22 +158,35 @@ void render() {
         SDL_RenderCopy(renderer, boulderTexture, NULL, &boulderRect);
     }
 
-    //player render handling
-    if (isPlayerUnderBoulder) {
-        //render nguoi choi o duoi boulder
-        SDL_Rect warningRect = {
+    //player rendering
+    if (isPlayerDead) {
+        //skeleton
+        SDL_Rect skeletonRect = {
             player.x * TILE_SIZE - offsetX,
-            player.y * TILE_SIZE - offsetY + verticalPadding,  // Position above player
+            player.y * TILE_SIZE - offsetY + verticalPadding,
             TILE_SIZE, TILE_SIZE
         };
-        SDL_RenderCopy(renderer, playerUnderBoulderTexture, NULL, &warningRect);
+        
+        SDL_RenderCopy(renderer, skeletonTexture, NULL, &skeletonRect);
+    } else if (isPlayerUnderBoulder) {
+        //under boulder
+        SDL_Rect playerRect = {
+            player.x * TILE_SIZE - offsetX,
+            player.y * TILE_SIZE - offsetY + verticalPadding,
+            TILE_SIZE, TILE_SIZE
+        };
+        SDL_RenderCopy(renderer, playerUnderBoulderTexture, NULL, &playerRect);
     } else {
-    //render nguoi choi binh thuong
-    player.render(renderer, offsetX, offsetY, verticalPadding);
+        //normal player
+        player.render(renderer, offsetX, offsetY, verticalPadding);
     }
 
-    //debug overlay
-    if (DEBUG_MODE) {
+    //render GUI overlay
+    SDL_Rect guiRect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+    SDL_RenderCopy(renderer, guiTexture, NULL, &guiRect);
+
+    //render the debug display if enabled
+    if (DEBUG_MODE && showDebugOverlay) {
         //debug info strings
         std::string fpsText = "FPS: " + std::to_string(static_cast<int>(currentFPS));
         
@@ -209,7 +240,7 @@ void render() {
             SDL_DestroyTexture(fpsTexture);
         }
         
-        //bo dem diamonds va leaves
+        //collectibles counter
         SDL_Texture* collectiblesTexture = renderText(collectiblesText, debugColor);
         if (collectiblesTexture) {
             int textWidth, textHeight;
@@ -219,7 +250,7 @@ void render() {
             SDL_DestroyTexture(collectiblesTexture);
         }
         
-        // Player state display
+        //player state display
         SDL_Texture* stateTexture = renderText(stateText, debugColor);
         if (stateTexture) {
             int textWidth, textHeight;
@@ -239,7 +270,7 @@ void render() {
             SDL_DestroyTexture(posTexture);
         }
         
-        //audio stuff br br
+        //audio
         SDL_Texture* audioTexture = renderText(audioText, debugColor);
         if (audioTexture) {
             int textWidth, textHeight;
@@ -249,6 +280,5 @@ void render() {
             SDL_DestroyTexture(audioTexture);
         }
     }
-
-    SDL_RenderPresent(renderer);
+        SDL_RenderPresent(renderer);
 }

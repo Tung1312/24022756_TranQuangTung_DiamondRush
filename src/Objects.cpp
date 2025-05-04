@@ -4,6 +4,9 @@
 #include "../include/GameTypes.h"
 #include <fstream>
 #include <iostream>
+#include <SDL2/SDL_mixer.h>
+extern Mix_Chunk* collectSound;
+extern bool SOUND_ENABLED;
 
 // kiem tra di chuyen cua nguoi choi
 //neu co vat can tro thi khong di chuyen duoc
@@ -102,6 +105,11 @@ void applyGravityToBoulders() {
                     boulder.needsUpdate = false;
                     boulder.pixelX = boulder.x * TILE_SIZE;
                     boulder.pixelY = boulder.y * TILE_SIZE;
+
+                    //play crash sound
+                    if (crashSound && SOUND_ENABLED) {
+                        Mix_PlayChannel(-1, crashSound, 0);
+                    }
                 }
             }
         }
@@ -110,34 +118,46 @@ void applyGravityToBoulders() {
 
 // ap dung trong luc cho kim cuong
 void applyGravityToDiamonds() {
-    
-    for (auto& diamond : diamonds) {
-        if (!diamond.isFalling) {
-            if (!isBlockedForBlocks(diamond.x, diamond.y + 1)) {
-                diamond.isFalling = true;
-                diamond.pixelX = diamond.x * TILE_SIZE;
-                diamond.pixelY = diamond.y * TILE_SIZE;
-                diamond.needsUpdate = true;
+    for (auto it = diamonds.begin(); it != diamonds.end(); ) {
+        bool collected = false;
+        
+        //kiem tra vi tri cua kim cuong va nguoi choi
+        if (it->x == player.x && it->y == player.y && !isPlayerDead) {
+            if (collectSound && SOUND_ENABLED) {
+                Mix_PlayChannel(-1, collectSound, 0);
             }
+            diamondsCollected++;
+            collected = true;
         }
         
-        if (diamond.isFalling) {
-            diamond.pixelY += FALL_SPEED;
+        if (collected) {
+            it = diamonds.erase(it);
+            continue;
+        }
+        
+        if (!it->isFalling && !isBlockedForBlocks(it->x, it->y + 1)) {
+            it->isFalling = true;
+        }
+        
+        // fall animation handling
+        if (it->isFalling) {
+            it->pixelY += FALL_SPEED;
+            it->needsUpdate = true;
             
-            if (diamond.pixelY >= (diamond.y + 1) * TILE_SIZE) {
-                diamond.y += 1;
+            int newGridY = static_cast<int>(it->pixelY / TILE_SIZE);
+            
+            if (newGridY > it->y) {
+                it->y = newGridY;
                 
-                if (!isBlockedForBlocks(diamond.x, diamond.y + 1)) {
-                    diamond.pixelX = diamond.x * TILE_SIZE;
-                    diamond.pixelY = diamond.y * TILE_SIZE;
-                } else {
-                    diamond.isFalling = false;
-                    diamond.needsUpdate = false;
-                    diamond.pixelX = diamond.x * TILE_SIZE;
-                    diamond.pixelY = diamond.y * TILE_SIZE;
+                if (isBlockedForBlocks(it->x, it->y + 1)) {
+                    it->isFalling = false;
+                    it->pixelY = it->y * TILE_SIZE;
+                    it->needsUpdate = false;
                 }
             }
         }
+        
+        ++it;
     }
 }
 
@@ -153,9 +173,10 @@ void loadLevelData(const std::string& levelFile) {
     leavesTiles.clear();
     diamonds.clear();
     boulderTiles.clear();
+    victoryTiles.clear();  // Add this line
 
     //doc du lieu tu file
-    //0: blocked tile, 1: leaves, 2: diamond, 3: boulder, 4: player start position
+    //0: blocked tile, 1: leaves, 2: diamond, 3: boulder, 8: start position, 9: victory
     int type, x, y;
     while (file >> type >> x >> y) {
         switch (type) {
@@ -187,9 +208,14 @@ void loadLevelData(const std::string& levelFile) {
                     boulderTiles.push_back(boulder);
                 }
                 break;
-            case 4:
+            case 8:
+                playerStartX = x;
+                playerStartY = y;
                 player.x = x;
                 player.y = y;
+                break;
+            case 9:
+                victoryTiles.emplace_back(x, y);
                 break;
         }
     }
