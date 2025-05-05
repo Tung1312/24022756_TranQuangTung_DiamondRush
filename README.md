@@ -39,10 +39,10 @@ Hỗ trợ tùy chỉnh thông qua `config.cfg`, cho phép người dùng thay �
 ### Màn hình Debug (F3)
 Chế độ debug hiển thị thông tin kỹ thuật khi chơi game, bao gồm:
 - FPS
-- Vị trí người chơi trên lưới (x, y)
+- Vị trí người chơi trên lưới (x, y) và hướng nhìn (trái, phải)
 - Số lượng kim cương đã thu thập
 - Số lá đã phá hủy
-- Trạng thái người chơi
+- Trạng thái người chơi (đứng yên, bị đá đè, đang đẩy đá)
 - Trạng thái âm thanh (bật/tắt)
 
 - ![](https://media.discordapp.net/attachments/929223503704621056/1368665797722898632/Screenshot_20250505_020234.png?ex=68190cda&is=6817bb5a&hm=f51a9799ec312917b220a7cf036d8b7fef76fd8b6874ea717852f4b214e3851a&=&format=webp&quality=lossless)
