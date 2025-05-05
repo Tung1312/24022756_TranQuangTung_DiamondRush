@@ -13,32 +13,31 @@
 #include <string>
 #include <vector>
 
-bool hasWon = false;
-std::vector<std::pair<int, int>> victoryTiles;
+using namespace std;
 
-bool loadConfigFile(const std::string& filename) {
-    std::ifstream configFile(filename);
+bool loadConfigFile(const string& filename) {
+    ifstream configFile(filename);
     if (!configFile.is_open()) {
         printf("Could not open config file: %s\n", filename.c_str());
         return false;
     }
     
-    std::string line;
-    while (std::getline(configFile, line)) {
+    string line;
+    while (getline(configFile, line)) {
         //skip comment va empty lines
         if (line.empty() || line[0] == '/' || line[0] == '#')
             continue;
             
         //tim kiem '='
         size_t equalsPos = line.find('=');
-        if (equalsPos == std::string::npos)
+        if (equalsPos == string::npos)
             continue;
             
         //trich xuat key va value
-        std::string key = line.substr(0, equalsPos);
-        std::string value = line.substr(equalsPos + 1);
+        string key = line.substr(0, equalsPos);
+        string value = line.substr(equalsPos + 1);
         
-        // Trim whitespace from key and value
+        //clear space rat bruh, thankyou chat gpt
         key.erase(0, key.find_first_not_of(" \t"));
         key.erase(key.find_last_not_of(" \t") + 1);
         value.erase(0, value.find_first_not_of(" \t"));
@@ -51,20 +50,20 @@ bool loadConfigFile(const std::string& filename) {
                 printf("Debug mode: %s\n", DEBUG_MODE ? "enabled" : "disabled");
             } 
             else if (key == "WINDOW_TITLE") {
-                static std::string windowTitleStr = value;
+                static string windowTitleStr = value;
                 WINDOW_TITLE = windowTitleStr.c_str();
                 printf("Window title: %s\n", WINDOW_TITLE);
             }
             else if (key == "FALL_SPEED") {
-                FALL_SPEED = std::stof(value);
+                FALL_SPEED = stof(value);
                 printf("Fall speed: %.2f\n", FALL_SPEED);
             }
             else if (key == "PUSH_DELAY") {
-                PUSH_DELAY = static_cast<Uint32>(std::stoi(value));
+                PUSH_DELAY = static_cast<Uint32>(stoi(value));
                 printf("Push delay: %u ms\n", PUSH_DELAY);
             }
             else if (key == "INITIAL_LEVEL") {
-                static std::string levelPathStr = value;
+                static string levelPathStr = value;
                 LEVEL_PATH = levelPathStr.c_str();
                 printf("Initial level: %s\n", LEVEL_PATH);
             }
@@ -73,7 +72,7 @@ bool loadConfigFile(const std::string& filename) {
                 printf("Sound: %s\n", SOUND_ENABLED ? "enabled" : "disabled");
             }
             else if (key == "SOUND_VOLUME") {
-                SOUND_VOLUME = std::stof(value);
+                SOUND_VOLUME = stof(value);
                 if (SOUND_VOLUME < 0.0f) SOUND_VOLUME = 0.0f;
                 if (SOUND_VOLUME > 1.0f) SOUND_VOLUME = 1.0f;
                 printf("Sound volume: %.2f\n", SOUND_VOLUME);
@@ -83,12 +82,12 @@ bool loadConfigFile(const std::string& filename) {
                 printf("Music: %s\n", MUSIC_ENABLED ? "enabled" : "disabled");
             }
             else if (key == "MUSIC_VOLUME") {
-                MUSIC_VOLUME = std::stof(value);
+                MUSIC_VOLUME = stof(value);
                 if (MUSIC_VOLUME < 0.0f) MUSIC_VOLUME = 0.0f;
                 if (MUSIC_VOLUME > 1.0f) MUSIC_VOLUME = 1.0f;
                 printf("Music volume: %.2f\n", MUSIC_VOLUME);
             }
-        } catch (const std::exception& e) {
+        } catch (const exception& e) {
             printf("Error parsing config value for %s: %s\n", key.c_str(), e.what());
         }
     }
@@ -96,6 +95,13 @@ bool loadConfigFile(const std::string& filename) {
     configFile.close();
     return true;
 }
+
+SDL_Texture* menuBackgroundTexture = nullptr;
+SDL_Texture* pressSpaceTexture = nullptr;
+Mix_Chunk* menuLoopSound = nullptr;
+Mix_Chunk* pressSpaceSound = nullptr;
+bool inMenuState = true;
+int menuMusicChannel = -1;
 
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
@@ -126,6 +132,7 @@ bool isPlayerDead = false;
 bool isPlayingDeathSequence = false;
 bool transitionToSkeletonDone = false;
 bool darkenElementsDone = false;
+bool hasWon = false;
 Uint32 playerUnderBoulderStartTime = 0;
 Uint32 deathSequenceStartTime = 0;
 
@@ -133,9 +140,10 @@ int playerStartX = 1;
 int playerStartY = 1;
 
 //game obj
-Player player = {3, 4};
+Player player = {69, 420};
 TileList blockedTiles;
 TileList leavesTiles;
+TileList victoryTiles;
 BlockList diamonds;
 BlockList boulderTiles;
 bool isPlayerUnderBoulder = false;
@@ -256,6 +264,29 @@ bool init() {
     printf("Loading level: %s\n", LEVEL_PATH);
     loadLevelData(LEVEL_PATH);
 
+//menu here
+    printf("Loading menu assets...\n");
+    menuBackgroundTexture = loadTexture(MENU_BACKGROUND_PATH);
+    pressSpaceTexture = loadTexture(PRESS_SPACE_PATH);
+    
+    menuLoopSound = Mix_LoadWAV(MENU_LOOP_PATH);
+    pressSpaceSound = Mix_LoadWAV(PRESS_SPACE_SOUND_PATH);
+    
+    if (!menuBackgroundTexture || !pressSpaceTexture) {
+        printf("Failed to load menu textures: %s\n", SDL_GetError());
+    }
+    
+    if (!menuLoopSound || !pressSpaceSound) {
+        printf("Failed to load menu sounds: %s\n", Mix_GetError());
+    }
+    
+    if (menuLoopSound && SOUND_ENABLED) {
+        menuMusicChannel = Mix_PlayChannel(-1, menuLoopSound, -1); // -1 = infinite loop
+        if (menuMusicChannel == -1) {
+            printf("Failed to play menu loop: %s\n", Mix_GetError());
+        }
+    }
+
     printf("====================================\n");
     printf("   Game Initialized Successfully!   \n");
     printf("====================================\n");
@@ -306,15 +337,15 @@ void resetLevel() {
     isPlayerDead = false;
     isPlayerUnderBoulder = false;
     playerUnderBoulderStartTime = 0;
-        wasUnderBoulder = false;
+    wasUnderBoulder = false;
     
-    // Reset texture colors
+    //reset texture
     SDL_SetTextureColorMod(mapTexture, 255, 255, 255);
     SDL_SetTextureColorMod(leavesTexture, 255, 255, 255);
     SDL_SetTextureColorMod(diamondTexture, 255, 255, 255);
     SDL_SetTextureColorMod(boulderTexture, 255, 255, 255);
     
-    // Clear all game objects
+    //clear game objs
     blockedTiles.clear();
     leavesTiles.clear();
     diamonds.clear();
@@ -322,10 +353,12 @@ void resetLevel() {
     
     //reload level data
     loadLevelData(LEVEL_PATH);
-    }
+}
 
 //don dep tai nguyen
 void cleanup() {
+    SDL_DestroyTexture(menuBackgroundTexture);
+    SDL_DestroyTexture(pressSpaceTexture);
     SDL_DestroyTexture(mapTexture);
     SDL_DestroyTexture(playerTexture);
     SDL_DestroyTexture(leavesTexture);
@@ -335,6 +368,8 @@ void cleanup() {
     SDL_DestroyTexture(guiTexture);
     SDL_DestroyTexture(skeletonTexture);
     
+    Mix_FreeChunk(menuLoopSound);
+    Mix_FreeChunk(pressSpaceSound);
     Mix_FreeChunk(leavesSound);
     Mix_FreeChunk(collectSound);
     Mix_FreeChunk(crashSound);

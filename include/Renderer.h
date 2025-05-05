@@ -12,4 +12,6 @@ SDL_Texture* renderText(const std::string& text, SDL_Color color);
 
 extern SDL_Texture* guiTexture;
 
+void renderMenu(bool transitioning);
+
 #endif // RENDERER_H

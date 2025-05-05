@@ -34,7 +34,7 @@ void Player::updateAnimation() {
 
 void Player::render(SDL_Renderer* renderer, int offsetX, int offsetY, int verticalPadding) {
     if (!texture) {
-        std::cout << "Player texture is null" << std::endl;
+        printf("Player texture is null\n");
         return;
     }
     

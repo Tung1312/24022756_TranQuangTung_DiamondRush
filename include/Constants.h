@@ -22,6 +22,8 @@ extern Uint32 PUSH_DELAY;
 extern Uint32 BOULDER_CRUSH_TIME;
 
 //assets
+extern const char* MENU_BACKGROUND_PATH;
+extern const char* PRESS_SPACE_PATH;
 extern const char* MAP_PATH;
 extern const char* PLAYER_PATH;
 extern const char* LEAVES_PATH;
@@ -32,6 +34,8 @@ extern const char* SKELETON_PATH;
 extern const char* GUI_PATH;
 
 //sounds
+extern const char* MENU_LOOP_PATH;
+extern const char* PRESS_SPACE_SOUND_PATH;
 extern const char* LEAVES_SOUND_PATH;
 extern const char* COLLECT_SOUND_PATH;
 extern const char* CRASH_SOUND_PATH;

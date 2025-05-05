@@ -164,7 +164,7 @@ void applyGravityToDiamonds() {
 void loadLevelData(const std::string& levelFile) {
     std::ifstream file(levelFile);
     if (!file) {
-        std::cerr << "Failed to open level file: " << levelFile << std::endl;
+        printf("Failed to open level file: %s\n", levelFile.c_str());
         return;
     }
 

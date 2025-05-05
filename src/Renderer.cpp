@@ -16,6 +16,8 @@ extern SDL_Texture* diamondTexture;
 extern SDL_Texture* playerUnderBoulderTexture;
 extern SDL_Texture* skeletonTexture;
 extern SDL_Texture* guiTexture;
+extern SDL_Texture* menuBackgroundTexture;
+extern SDL_Texture* pressSpaceTexture;
 extern Player player;
 extern TileList leavesTiles;
 extern BlockList diamonds;
@@ -36,26 +38,26 @@ extern bool darkenElementsDone;
 SDL_Texture* loadTexture(const char* path) {
     SDL_Texture* texture = IMG_LoadTexture(renderer, path);
     if (!texture) {
-        std::cout << "Failed to load texture: " << IMG_GetError() << std::endl;
+        printf("Failed to load texture: %s\n", IMG_GetError());
     }
     return texture;
 }
 
 SDL_Texture* renderText(const std::string& text, SDL_Color color) {
     if (!gameFont) {
-        std::cout << "Font not loaded for text rendering" << std::endl;
+        printf("Font not loaded for text rendering\n");
         return nullptr;
     }
     
     SDL_Surface* textSurface = TTF_RenderText_Solid(gameFont, text.c_str(), color);
     if (!textSurface) {
-        std::cout << "Failed to create text surface: " << TTF_GetError() << std::endl;
+        printf("Failed to create text surface: %s\n", TTF_GetError());
         return nullptr;
     }
     
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     if (!textTexture) {
-        std::cout << "Failed to create text texture: " << SDL_GetError() << std::endl;
+        printf("Failed to create text texture: %s\n", SDL_GetError());
     }
     
     SDL_FreeSurface(textSurface);
@@ -281,4 +283,31 @@ void render() {
         }
     }
         SDL_RenderPresent(renderer);
+}
+
+void renderMenu(bool transitioning) {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    
+    //render background
+    SDL_Rect menuRect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
+    SDL_RenderCopy(renderer, menuBackgroundTexture, NULL, &menuRect);
+     
+    //kich thuoc'press space'
+    int spaceWidth = 131;
+    int spaceHeight = 12;
+    SDL_SetTextureAlphaMod(pressSpaceTexture, 255);
+    
+    //render 'press space'
+    if (!transitioning) {
+        SDL_Rect spaceRect = {
+            (SCREEN_WIDTH - spaceWidth) / 2,
+            240,
+            spaceWidth, 
+            spaceHeight
+        };
+        SDL_RenderCopy(renderer, pressSpaceTexture, NULL, &spaceRect);
+    }
+    
+    SDL_RenderPresent(renderer);
 }

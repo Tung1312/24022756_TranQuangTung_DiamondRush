@@ -17,6 +17,14 @@ struct Block {
     bool needsUpdate = false;   //whether the block needs position update
 };
 
+//menu
+extern SDL_Texture* menuBackgroundTexture;
+extern SDL_Texture* pressSpaceTexture;
+extern Mix_Chunk* menuLoopSound;
+extern Mix_Chunk* pressSpaceSound;
+extern bool inMenuState;
+extern int menuMusicChannel;
+
 //def nhat kim cuong
 typedef std::vector<std::pair<int, int>> TileList;
 typedef std::vector<Block> BlockList;
