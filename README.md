@@ -18,9 +18,11 @@ Game được dựa trên Diamond Rush của Gameloft và được phát triển
 ## Cách chơi game
 ### Điều khiển
 - Mũi tên lên/xuống/trái/phải: Di chuyển nhân vật
-- ![](https://media.discordapp.net/attachments/929223503704621056/1368666027164172298/Screenshot_20250505_020949.png?ex=68190d11&is=6817bb91&hm=41dd20804c7c348a95684d3dfa542ae3b1d650865504ed8ea6c0684fc22186a6&=&format=webp&quality=lossless)
+
+    ![](https://media.discordapp.net/attachments/929223503704621056/1368666027164172298/Screenshot_20250505_020949.png?ex=68190d11&is=6817bb91&hm=41dd20804c7c348a95684d3dfa542ae3b1d650865504ed8ea6c0684fc22186a6&=&format=webp&quality=lossless)
 - R: Khởi động lại màn chơi
-- ![](https://media.discordapp.net/attachments/929223503704621056/1368667312453980281/Screenshot_20250505_021258.png?ex=68190e43&is=6817bcc3&hm=584e5693b52fb543c42a97bb0f976f2ebfb47049c1df6e0c64a51f6fa5752d49&=&format=webp&quality=lossless)
+
+    ![](https://media.discordapp.net/attachments/929223503704621056/1368667312453980281/Screenshot_20250505_021258.png?ex=68190e43&is=6817bcc3&hm=584e5693b52fb543c42a97bb0f976f2ebfb47049c1df6e0c64a51f6fa5752d49&=&format=webp&quality=lossless)
 - F3: Hiển thị màn hình debug
 - ~~ESC: Tạm dừng game~~
 
@@ -32,9 +34,12 @@ Game được dựa trên Diamond Rush của Gameloft và được phát triển
 
 ### Tùy chỉnh cấu hình (Config)
 Hỗ trợ tùy chỉnh thông qua `config.cfg`, cho phép người dùng thay đổi các thông số mà không cần biên dịch lại:
-~~*very badly implemented tho :L*~~
 
-- ![](https://media.discordapp.net/attachments/1304753378550874152/1368845352257585214/image.png?ex=6819b413&is=68186293&hm=fab4e8d7a57d5972c61465bb63ac48adf5978a0e0658822f513a74b34dfc52ac&=&format=webp&quality=lossless)
+> Lưu ý: *Các giá trị liên quan đến vật lý và độ trễ (tốc độ rơi, độ trễ đẩy,...) 
+chưa được tối ưu trong hệ thống cấu hình. Thay đổi các giá trị này có thể
+gây lỗi gameplay hoặc hiệu ứng không mong muốn.*
+
+![](https://media.discordapp.net/attachments/1304753378550874152/1368845352257585214/image.png?ex=6819b413&is=68186293&hm=fab4e8d7a57d5972c61465bb63ac48adf5978a0e0658822f513a74b34dfc52ac&=&format=webp&quality=lossless)
 
 ### Màn hình Debug (F3)
 Chế độ debug hiển thị thông tin kỹ thuật khi chơi game, bao gồm:
@@ -45,7 +50,7 @@ Chế độ debug hiển thị thông tin kỹ thuật khi chơi game, bao gồm
 - Trạng thái người chơi
 - Trạng thái âm thanh (bật/tắt)
 
-- ![](https://media.discordapp.net/attachments/929223503704621056/1368665797722898632/Screenshot_20250505_020234.png?ex=68190cda&is=6817bb5a&hm=f51a9799ec312917b220a7cf036d8b7fef76fd8b6874ea717852f4b214e3851a&=&format=webp&quality=lossless)
+![](https://media.discordapp.net/attachments/929223503704621056/1368665797722898632/Screenshot_20250505_020234.png?ex=68190cda&is=6817bb5a&hm=f51a9799ec312917b220a7cf036d8b7fef76fd8b6874ea717852f4b214e3851a&=&format=webp&quality=lossless)
 
 ---
-*Lưu ý: Dự án này được phát triển với mục đích học tập, không phân phối hoặc sử dụng cho mục đích thương mại. Diamond Rush là thương hiệu của Gameloft và dự án này không liên kết hoặc được xác nhận bởi Gameloft.*
+*Disclaimer: Dự án được phát triển với mục đích học tập; không phân phối ,sử dụng cho mục đích thương mại. Diamond Rush là thương hiệu của Gameloft và dự án này không liên kết hoặc được xác nhận bởi Gameloft.*
