@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
                     Mix_PlayChannel(-1, pressSpaceSound, 0);
                 }
             } else if (!inMenuState) {
-                //gameplay input
+                //reset input
                 if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_r) {
                     if (!isPlayerDead) {
                         isPlayerDead = true;

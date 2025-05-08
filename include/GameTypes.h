@@ -7,14 +7,15 @@
 #include <vector>
 #include <utility>
 
+//khai bao forward struct player
 struct Player;
 
-//struct block nang cao voi trong luc
+//khai bao struct block
 struct Block {
-    int x, y;                   //grid position
-    float pixelX, pixelY;       // actual pixel position for smooth movement
+    int x, y;
+    float pixelX, pixelY;
     bool isFalling = false;
-    bool needsUpdate = false;   //whether the block needs position update
+    bool needsUpdate = false;
 };
 
 //menu
@@ -25,16 +26,17 @@ extern Mix_Chunk* pressSpaceSound;
 extern bool inMenuState;
 extern int menuMusicChannel;
 
-//def nhat kim cuong
+//def block va tile
 typedef std::vector<std::pair<int, int>> TileList;
 typedef std::vector<Block> BlockList;
 
 //khai bao game obj
 extern Player player;
-extern TileList blockedTiles;  //Wall tiles that block movement
-extern TileList leavesTiles;   // Destroyable leaves
-extern BlockList diamonds;     //Collectible diamonds
-extern BlockList boulderTiles; //Movable boulders
+extern TileList blockedTiles;
+extern TileList leavesTiles;
+extern TileList victoryTiles;
+extern BlockList diamonds;
+extern BlockList boulderTiles;
 
 //hien thi hinh anh nguoi choi o duoi boulder
 extern bool isPlayerUnderBoulder;
@@ -59,7 +61,6 @@ extern Mix_Chunk* gameOverSound;
 
 //game winning condition
 extern bool hasWon;
-extern std::vector<std::pair<int, int>> victoryTiles;
 extern Mix_Chunk* victorySound;
 
 extern int playerStartX;

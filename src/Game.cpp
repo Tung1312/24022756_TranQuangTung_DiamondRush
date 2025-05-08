@@ -43,7 +43,7 @@ bool loadConfigFile(const string& filename) {
         value.erase(0, value.find_first_not_of(" \t"));
         value.erase(value.find_last_not_of(" \t") + 1);
         
-        //key-value pair processing
+        //key-value pair processing god bless ai
         try {
             if (key == "DEBUG_MODE") {
                 DEBUG_MODE = (value == "true" || value == "1");
@@ -96,16 +96,31 @@ bool loadConfigFile(const string& filename) {
     return true;
 }
 
+//khai bao cac bien game
+//window
+SDL_Window* window = nullptr;
+SDL_Renderer* renderer = nullptr;
+TTF_Font* gameFont = nullptr;
+
+//game
+bool isPlayerDead = false;
+bool isPlayerUnderBoulder = false;
+bool wasUnderBoulder = false;
+bool hasWon = false;
+bool showDebugOverlay = false;
+int diamondsCollected = 0;
+int leavesDestroyed = 0;
+float currentFPS = 0.0f;
+
+//menu
+bool inMenuState = true;
 SDL_Texture* menuBackgroundTexture = nullptr;
 SDL_Texture* pressSpaceTexture = nullptr;
 Mix_Chunk* menuLoopSound = nullptr;
 Mix_Chunk* pressSpaceSound = nullptr;
-bool inMenuState = true;
 int menuMusicChannel = -1;
 
-SDL_Window* window = nullptr;
-SDL_Renderer* renderer = nullptr;
-
+//texture
 SDL_Texture* mapTexture = nullptr;
 SDL_Texture* playerTexture = nullptr;
 SDL_Texture* leavesTexture = nullptr;
@@ -115,39 +130,31 @@ SDL_Texture* playerUnderBoulderTexture = nullptr;
 SDL_Texture* guiTexture = nullptr;
 SDL_Texture* skeletonTexture = nullptr;
 
+//sound
 Mix_Chunk* leavesSound = nullptr;
 Mix_Chunk* collectSound = nullptr;
 Mix_Chunk* crashSound = nullptr;
 Mix_Chunk* gameOverSound = nullptr;
 Mix_Chunk* victorySound = nullptr;
 
-TTF_Font* gameFont = nullptr;
-
-int diamondsCollected = 0;
-int leavesDestroyed = 0;
-float currentFPS = 0.0f;
-
-bool showDebugOverlay = false;
-bool isPlayerDead = false;
-bool isPlayingDeathSequence = false;
-bool transitionToSkeletonDone = false;
-bool darkenElementsDone = false;
-bool hasWon = false;
-Uint32 playerUnderBoulderStartTime = 0;
-Uint32 deathSequenceStartTime = 0;
-
+//player
+Player player = {69, 420};
 int playerStartX = 1;
 int playerStartY = 1;
 
-//game obj
-Player player = {69, 420};
+//death sequence
+bool isPlayingDeathSequence = false;
+bool transitionToSkeletonDone = false;
+bool darkenElementsDone = false;
+Uint32 playerUnderBoulderStartTime = 0;
+Uint32 deathSequenceStartTime = 0;
+
+//game elements
 TileList blockedTiles;
 TileList leavesTiles;
 TileList victoryTiles;
 BlockList diamonds;
 BlockList boulderTiles;
-bool isPlayerUnderBoulder = false;
-bool wasUnderBoulder = false;
 
 bool init() {
     //load config truoc khi khoi dong game
@@ -189,8 +196,12 @@ bool init() {
     }
     
     //window creation
-    window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-                             SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow(WINDOW_TITLE,
+                              SDL_WINDOWPOS_CENTERED,
+                              SDL_WINDOWPOS_CENTERED, 
+                              SCREEN_WIDTH,
+                              SCREEN_HEIGHT,
+                              SDL_WINDOW_SHOWN);
     if (!window) {
         printf("Window creation failed: %s\n", SDL_GetError());
         return false;
@@ -240,8 +251,14 @@ bool init() {
     guiTexture = loadTexture(GUI_PATH);
     skeletonTexture = loadTexture(SKELETON_PATH);
 
-    if (!mapTexture || !playerTexture || !leavesTexture || !boulderTexture || !diamondTexture || !playerUnderBoulderTexture || 
-        !guiTexture || !skeletonTexture || !leavesSound || !collectSound || !crashSound || !gameOverSound || !victorySound) {
+    if (!mapTexture ||
+        !playerTexture ||
+        !leavesTexture ||
+        !boulderTexture ||
+        !diamondTexture ||
+        !playerUnderBoulderTexture ||
+        !guiTexture ||
+        !skeletonTexture) {
         printf("Failed to load assets: %s\n", Mix_GetError());
     }
     
@@ -253,7 +270,11 @@ bool init() {
     gameOverSound = Mix_LoadWAV(GAME_OVER_SOUND_PATH);
     victorySound = Mix_LoadWAV(VICTORY_SOUND_PATH);
 
-    if (!leavesSound || !collectSound || !crashSound || !gameOverSound || !victorySound) {
+    if (!leavesSound ||
+        !collectSound ||
+        !crashSound ||
+        !gameOverSound ||
+        !victorySound) {
         printf("Failed to load sound effects: %s\n", Mix_GetError());
     }
 
@@ -291,8 +312,16 @@ bool init() {
     printf("   Game Initialized Successfully!   \n");
     printf("====================================\n");
     
-    return mapTexture && playerTexture && leavesTexture && 
-    boulderTexture && diamondTexture && playerUnderBoulderTexture && guiTexture;
+    return mapTexture && 
+           playerTexture && 
+           leavesTexture && 
+           boulderTexture && 
+           diamondTexture && 
+           playerUnderBoulderTexture && 
+           guiTexture && 
+           skeletonTexture && 
+           menuBackgroundTexture && 
+           pressSpaceTexture;
 }
 
 //input handling
