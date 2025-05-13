@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
                         isPlayerDead = true;
                         Mix_HaltChannel(-1);
                     }
-                } else {
+                } else if (!hasWon) {
                     handleInput(e);
                 }
             }
